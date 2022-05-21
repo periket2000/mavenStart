@@ -1,0 +1,1 @@
+# Maven squeleton for basic testing
