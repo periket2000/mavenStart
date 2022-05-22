@@ -20,4 +20,8 @@ public class JettyServer {
         servletHandler.addServletWithMapping(BlockingServlet.class, "/status");
         server.start();
     }
+
+    public void stop() throws Exception {
+        server.stop();
+    }
 }
