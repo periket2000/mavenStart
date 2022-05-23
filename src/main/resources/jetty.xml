@@ -1,45 +1,81 @@
-<?xml version="1.0"?>
-<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure_9_0.dtd">
 
-<!-- =============================================================== -->
-<!-- Configure the Jetty Server                                      -->
-<!--                                                                 -->
-<!-- Documentation of this file format can be found at:              -->
-<!-- http://wiki.eclipse.org/Jetty/Reference/jetty.xml_syntax        -->
-<!--                                                                 -->
-<!-- Additional configuration files are available in $JETTY_HOME/etc -->
-<!-- and can be mixed in.  For example:                              -->
-<!--   java -jar start.jar etc/jetty.xml etc/jetty-ssl.xml           -->
-<!--                                                                 -->
-<!-- See start.ini file for the default configuraton files           -->
-<!-- =============================================================== -->
+<!--
+    Command for generating keystore
+    keytool -genkey -alias somealias -keystore keystore.p12 -storetype PKCS12 -keyalg RSA -storepass changeit -validity 730 -keysize 4096
+
+    Command for generating truststore
+    keytool -genkeypair -alias my_home -keystore truststore.jks
+-->
 
 <Configure id="Server" class="org.eclipse.jetty.server.Server">
 
-<New id="httpConfig" class="org.eclipse.jetty.server.HttpConfiguration">
-  <Set name="secureScheme">https</Set>
-  <Set name="securePort"><Property name="jetty.ssl.port" default="8443" /></Set>
-  <Set name="outputBufferSize">32768</Set>
-  <Set name="requestHeaderSize">8192</Set>
-  <Set name="responseHeaderSize">8192</Set>
-</New>
-
-<Call name="addConnector">
-  <Arg>
-    <New class="org.eclipse.jetty.server.ServerConnector">
-      <Arg name="server"><Ref refid="Server" /></Arg>
-      <Arg name="factories">
-        <Array type="org.eclipse.jetty.server.ConnectionFactory">
-          <Item>
-            <New class="org.eclipse.jetty.server.HttpConnectionFactory">
-              <Arg name="config"><Ref refid="httpConfig" /></Arg>
-            </New>
-          </Item>
-        </Array>
-      </Arg>
-      <Set name="port">8090</Set>
+    <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory">
+        <Set name="keyStorePath">C:\Users\blanc\Devel\tmp\test\src\main\resources\keystore.p12</Set>
+        <Set name="keyStorePassword">changeit</Set>
+        <Set name="trustStorePath">C:\Users\blanc\Devel\tmp\test\src\main\resources\truststore.jks</Set>
+        <Set name="trustStorePassword">changeit</Set>
+        <Set name="protocol">TLSv1.2</Set>
     </New>
-  </Arg>
-</Call>
+
+    <New id="tlsHttpConfig" class="org.eclipse.jetty.server.HttpConfiguration">
+        <Arg>
+            <New id="httpConfig" class="org.eclipse.jetty.server.HttpConfiguration">
+                <Set name="secureScheme">https</Set>
+                <Set name="securePort">
+                    <Property name="jetty.tls.port" default="8443"/>
+                </Set>
+                <!--
+                <Set name="outputBufferSize">32768</Set>
+                <Set name="requestHeaderSize">8192</Set>
+                <Set name="responseHeaderSize">8192</Set>
+                -->
+                <!-- Uncomment to enable handling of X-Forwarded- style headers
+                <Call name="addCustomizer">
+                    <Arg><New class="org.eclipse.jetty.server.ForwardedRequestCustomizer"/></Arg>
+                </Call>
+                -->
+            </New>
+        </Arg>
+        <Call name="addCustomizer">
+            <Arg>
+                <New class="org.eclipse.jetty.server.SecureRequestCustomizer"/>
+            </Arg>
+        </Call>
+    </New>
+
+    <Call id="sslConnector" name="addConnector">
+        <Arg>
+            <New class="org.eclipse.jetty.server.ServerConnector">
+                <Arg name="server"><Ref refid="Server"/></Arg>
+                <Arg name="factories">
+                    <Array type="org.eclipse.jetty.server.ConnectionFactory">
+
+                        <!-- SSL Connection factory with NPN as next protocol -->
+                        <Item>
+                            <New class="org.eclipse.jetty.server.SslConnectionFactory">
+                                <Arg name="next">http/1.1</Arg>
+                                <Arg name="sslContextFactory">
+                                    <Ref refid="sslContextFactory"/>
+                                </Arg>
+                            </New>
+                        </Item>
+
+                        <!-- HTTP Connection factory -->
+                        <Item>
+                            <New class="org.eclipse.jetty.server.HttpConnectionFactory">
+                                <Arg name="config">
+                                    <Ref refid="tlsHttpConfig"/>
+                                </Arg>
+                            </New>
+                        </Item>
+                    </Array>
+                </Arg>
+
+                <Set name="port">8443</Set>
+            </New>
+        </Arg>
+    </Call>
 
 </Configure>
