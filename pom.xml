@@ -35,6 +35,16 @@
     <groupId>org.eclipse.jetty</groupId>
     <artifactId>jetty-webapp</artifactId>
     <version>9.4.43.v20210629</version>
+</dependency>
+<dependency>
+    <groupId>org.eclipse.jetty</groupId>
+    <artifactId>jetty-io</artifactId>
+    <version>9.4.43.v20210629</version>
+</dependency>
+<dependency>
+    <groupId>org.eclipse.jetty</groupId>
+    <artifactId>jetty-util</artifactId>
+    <version>9.4.43.v20210629</version>
 </dependency>    
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -46,6 +56,11 @@
   <build>
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
       <plugins>
+      <plugin>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>9.4.43.v20210629</version>
+      </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
